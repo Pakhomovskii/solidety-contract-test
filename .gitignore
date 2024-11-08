@@ -1,0 +1,18 @@
+# Игнорировать скомпилированные контракты
+build/
+
+# Игнорировать зависимости Node.js
+node_modules/
+migrations/
+
+.cache/
+*.log
+package-lock.json
+package.json
+.idea/
+.vscode/
+*.DS_Store
+steps.md
+artifacts/
+
+.env
