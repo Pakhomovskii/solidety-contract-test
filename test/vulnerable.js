@@ -1,8 +1,8 @@
-const Vulnerable = artifacts.require("Vulnerable");
+const Secure = artifacts.require("Secure");
 const Attacker = artifacts.require("Attacker");
 
-contract("Vulnerable", (accounts) => {
-  it("should allow an attacker to drain funds via reentrancy", async () => {
+contract("Secure", (accounts) => {
+  it("should prevent reentrancy attack", async () => {
     // Initial balance
     let balance = await web3.eth.getBalance(accounts[0]);
     console.log(
@@ -11,34 +11,20 @@ contract("Vulnerable", (accounts) => {
       "ETH"
     );
 
-    // Deploy Vulnerable contract with 500 ETH
-    const vulnerable = await Vulnerable.new({
+    // Deploy Secure contract with 10 ETH
+    const secure = await Secure.new({
       from: accounts[0],
-      value: web3.utils.toWei("500", "ether"),
+      value: web3.utils.toWei("10", "ether"),
       gas: 5000000,
       gasPrice: 2000000000,
     });
-
-    balance = await web3.eth.getBalance(accounts[0]);
-    console.log(
-      "Balance after deploying Vulnerable:",
-      web3.utils.fromWei(balance, "ether"),
-      "ETH"
-    );
 
     // Deploy Attacker contract
-    const attacker = await Attacker.new(vulnerable.address, {
+    const attacker = await Attacker.new(secure.address, {
       from: accounts[0],
       gas: 5000000,
       gasPrice: 2000000000,
     });
-
-    balance = await web3.eth.getBalance(accounts[0]);
-    console.log(
-      "Balance after deploying Attacker:",
-      web3.utils.fromWei(balance, "ether"),
-      "ETH"
-    );
 
     // Fund the Attacker contract with 1 ETH
     await attacker.fund({
@@ -48,27 +34,42 @@ contract("Vulnerable", (accounts) => {
       gasPrice: 2000000000,
     });
 
-    // Execute the attack with increased gas limit
+    // Attempt to perform the attack
     await attacker.attack({
       from: accounts[0],
-      gas: 10000000, // Increased gas limit
+      gas: 5000000,
       gasPrice: 2000000000,
     });
 
-    // Final balance of the Attacker contract
+    // Check the balance of the Attacker contract
     const attackerBalance = await web3.eth.getBalance(attacker.address);
     console.log(
-      "Attacker contract balance after attack:",
+      "Attacker contract balance after attack attempt:",
       web3.utils.fromWei(attackerBalance, "ether"),
       "ETH"
     );
 
-    // Verify that the Attacker drained the funds
+    // Verify that the Attacker did not drain the funds
     assert(
       web3.utils
         .toBN(attackerBalance)
-        .gt(web3.utils.toBN(web3.utils.toWei("10", "ether"))),
-      "Attacker did not drain the funds"
+        .lte(web3.utils.toBN(web3.utils.toWei("2", "ether"))),
+      "Attacker was able to drain funds!"
+    );
+
+    // Check that the balance of the Secure contract did not significantly decrease
+    const secureBalance = await web3.eth.getBalance(secure.address);
+    console.log(
+      "Secure contract balance after attack attempt:",
+      web3.utils.fromWei(secureBalance, "ether"),
+      "ETH"
+    );
+
+    assert(
+      web3.utils
+        .toBN(secureBalance)
+        .gte(web3.utils.toBN(web3.utils.toWei("9", "ether"))),
+      "Secure contract balance should not have been drained"
     );
   });
 });
