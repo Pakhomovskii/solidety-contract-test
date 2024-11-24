@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.0;
 
 import "./IVulnerable.sol";
 
@@ -7,7 +7,7 @@ contract Secure is IVulnerable {
     mapping(address => uint256) public balances;
     bool private locked;
 
-    constructor() public payable {
+    constructor() payable {
         balances[msg.sender] = msg.value;
     }
 
@@ -27,7 +27,7 @@ contract Secure is IVulnerable {
 
         balances[msg.sender] -= _amount;
 
-        (bool success, ) = msg.sender.call.value(_amount)("");
+        (bool success, ) = payable(msg.sender).call{value: _amount}("");
         require(success, "Transfer failed.");
     }
 }
