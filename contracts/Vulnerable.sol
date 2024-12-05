@@ -4,17 +4,12 @@ pragma solidity ^0.8.0;
 contract Vulnerable {
     mapping(address => uint256) public balances;
 
-    // Добавляем payable конструктор
-    constructor() payable {
-        // Вы можете добавить инициализацию, если необходимо
-    }
+    constructor() payable {}
 
-    // Функция для депозита эфира
     function deposit() external payable {
         balances[msg.sender] += msg.value;
     }
 
-    // Уязвимая функция вывода
     function withdraw(uint256 _amount) external {
         require(balances[msg.sender] >= _amount, "Insufficient balance");
 

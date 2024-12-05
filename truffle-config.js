@@ -1,16 +1,16 @@
 module.exports = {
   networks: {
     development: {
-      host: "127.0.0.1",     // Локальный хост
-      port: 8545,            // Порт Ganache
-      network_id: "*",       // Любой network id
+      host: "127.0.0.1",
+      port: 8545,
+      network_id: "*",
       gas: 10000000,
-      gasPrice: 2000000000,  // 2 Gwei в wei
+      gasPrice: 2000000000,
     },
   },
   compilers: {
     solc: {
-      version: "0.8.0",      // Укажите точную версию компилятора
+      version: "0.8.0",    
       settings: {
         optimizer: {
           enabled: false,

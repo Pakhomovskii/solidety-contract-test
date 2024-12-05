@@ -3,111 +3,153 @@ const SecureCEI = artifacts.require("SecureCEI");
 const SecureMutex = artifacts.require("SecureMutex");
 const SecurePullPayment = artifacts.require("SecurePullPayment");
 const SecureOZReentrancyGuard = artifacts.require("SecureOZReentrancyGuard");
-const Attacker = artifacts.require("Attacker");
 
-contract("Reentrancy Attack Tests", (accounts) => {
-  const attackerAccount = accounts[1];
-  const numRuns = 5; // Количество запусков для усреднения потребления газа
+contract("Smart Contract Tests", (accounts) => {
+  const [deployerAccount, userAccount] = accounts;
+  const numRuns = 5; // Number of runs to average gas consumption
 
-  async function performAttack(contractArtifact, contractName) {
+  async function testContract(contractArtifact, contractName) {
     let totalGasUsedDeploy = 0;
-    let totalGasUsedAttack = 0;
-    let attackSuccessful = false;
-    let attackerFinalBalance;
-    let targetFinalBalance;
+    let totalGasUsedDeposit = 0;
+    let totalGasUsedWithdraw = 0;
+    let finalContractBalance;
+    let finalUserBalance;
 
     for (let i = 0; i < numRuns; i++) {
-      // Развертывание целевого контракта с 10 ETH
-      const targetContractInstance = await contractArtifact.new({
-        from: accounts[0],
+      // Deploying the contract with 10 ETH
+      const contractInstance = await contractArtifact.new({
+        from: deployerAccount,
         value: web3.utils.toWei("10", "ether"),
       });
-      totalGasUsedDeploy += targetContractInstance.transactionHash
-        ? (await web3.eth.getTransactionReceipt(targetContractInstance.transactionHash)).gasUsed
-        : 0;
+      const deployTx = await web3.eth.getTransactionReceipt(contractInstance.transactionHash);
+      totalGasUsedDeploy += deployTx.gasUsed;
 
-      // Развертывание атакующего контракта
-      const attackerContractInstance = await Attacker.new(targetContractInstance.address, {
-        from: attackerAccount,
-      });
-
-      // Финансирование атакующего контракта 1 ETH
-      await attackerContractInstance.fund({
-        from: attackerAccount,
+      // User deposits 1 ETH
+      const depositTx = await contractInstance.deposit({
+        from: userAccount,
         value: web3.utils.toWei("1", "ether"),
       });
+      totalGasUsedDeposit += depositTx.receipt.gasUsed;
 
-      // Записываем баланс целевого контракта перед атакой
-      const targetBalanceBefore = await web3.eth.getBalance(targetContractInstance.address);
+      // Record contract and user balance after deposit
+      const contractBalanceAfterDeposit = await web3.eth.getBalance(contractInstance.address);
+      const userBalanceAfterDeposit = await contractInstance.balances(userAccount);
 
-      // Пытаемся выполнить атаку
-      try {
-        const tx = await attackerContractInstance.attack({
-          from: attackerAccount,
-          gas: 5000000,
-        });
-        totalGasUsedAttack += tx.receipt.gasUsed;
+      // User withdraws 0.5 ETH
+      const withdrawTx = await contractInstance.withdraw(web3.utils.toWei("0.5", "ether"), {
+        from: userAccount,
+      });
+      totalGasUsedWithdraw += withdrawTx.receipt.gasUsed;
 
-        // Проверяем, был ли баланс целевого контракта уменьшен
-        const targetBalanceAfter = await web3.eth.getBalance(targetContractInstance.address);
+      // Record contract and user balance after withdrawal
+      const contractBalanceAfterWithdraw = await web3.eth.getBalance(contractInstance.address);
+      const userBalanceAfterWithdraw = await contractInstance.balances(userAccount);
 
-        if (
-          web3.utils
-            .toBN(targetBalanceAfter)
-            .lt(web3.utils.toBN(targetBalanceBefore).sub(web3.utils.toBN(web3.utils.toWei("1", "ether"))))
-        ) {
-          attackSuccessful = true;
-        }
+      // Check balances
+      assert.equal(
+        web3.utils.fromWei(userBalanceAfterWithdraw, "ether"),
+        "0.5",
+        "User balance should be 0.5 ETH"
+      );
 
-        // Записываем балансы после последнего запуска
-        if (i === numRuns - 1) {
-          const attackerBalance = await web3.eth.getBalance(attackerContractInstance.address);
-          attackerFinalBalance = web3.utils.fromWei(attackerBalance, "ether");
-          targetFinalBalance = web3.utils.fromWei(targetBalanceAfter, "ether");
-        }
-      } catch (error) {
-        // Атака не удалась, фиксируем это
-        attackSuccessful = false;
-
-        // Записываем балансы после последнего запуска
-        if (i === numRuns - 1) {
-          const attackerBalance = await web3.eth.getBalance(attackerContractInstance.address);
-          attackerFinalBalance = web3.utils.fromWei(attackerBalance, "ether");
-
-          const targetBalance = await web3.eth.getBalance(targetContractInstance.address);
-          targetFinalBalance = web3.utils.fromWei(targetBalance, "ether");
-        }
+      if (i === numRuns - 1) {
+        finalContractBalance = web3.utils.fromWei(contractBalanceAfterWithdraw, "ether");
+        finalUserBalance = web3.utils.fromWei(userBalanceAfterWithdraw, "ether");
       }
     }
 
     const averageGasUsedDeploy = totalGasUsedDeploy / numRuns;
-    const averageGasUsedAttack = totalGasUsedAttack / numRuns;
+    const averageGasUsedDeposit = totalGasUsedDeposit / numRuns;
+    const averageGasUsedWithdraw = totalGasUsedWithdraw / numRuns;
 
     console.log(`\n=== ${contractName} ===`);
-    console.log(`Average gas consumption during deployment: ${averageGasUsedDeploy}`);
-    console.log(`Average gas consumption during attack: ${averageGasUsedAttack}`);
-    console.log(`Attack successful: ${attackSuccessful ? 'Yes' : 'No'}`);
-    console.log(`Attacker contract balance after attack: ${attackerFinalBalance} ETH`);
-    console.log(`Target contract balance after attack: ${targetFinalBalance} ETH`);
+    console.log(`Average gas used for deployment: ${averageGasUsedDeploy}`);
+    console.log(`Average gas used for deposit: ${averageGasUsedDeposit}`);
+    console.log(`Average gas used for withdrawal: ${averageGasUsedWithdraw}`);
+    console.log(`Final contract balance: ${finalContractBalance} ETH`);
+    console.log(`Final user balance in contract: ${finalUserBalance} ETH`);
   }
 
   it("should test Vulnerable contract", async () => {
-    await performAttack(Vulnerable, "Vulnerable");
+    await testContract(Vulnerable, "Vulnerable");
   });
 
   it("should test SecureCEI contract", async () => {
-    await performAttack(SecureCEI, "SecureCEI");
+    await testContract(SecureCEI, "SecureCEI");
   });
 
   it("should test SecureMutex contract", async () => {
-    await performAttack(SecureMutex, "SecureMutex");
+    await testContract(SecureMutex, "SecureMutex");
   });
 
   it("should test SecurePullPayment contract", async () => {
-    await performAttack(SecurePullPayment, "SecurePullPayment");
+    // For the SecurePullPayment contract, modify the test function as the withdraw() method takes no arguments
+    async function testPullPaymentContract(contractArtifact, contractName) {
+      let totalGasUsedDeploy = 0;
+      let totalGasUsedDeposit = 0;
+      let totalGasUsedWithdraw = 0;
+      let finalContractBalance;
+      let finalUserBalance;
+
+      for (let i = 0; i < numRuns; i++) {
+        // Deploying the contract with 10 ETH
+        const contractInstance = await contractArtifact.new({
+          from: deployerAccount,
+          value: web3.utils.toWei("10", "ether"),
+        });
+        const deployTx = await web3.eth.getTransactionReceipt(contractInstance.transactionHash);
+        totalGasUsedDeploy += deployTx.gasUsed;
+
+        // User deposits 1 ETH
+        const depositTx = await contractInstance.deposit({
+          from: userAccount,
+          value: web3.utils.toWei("1", "ether"),
+        });
+        totalGasUsedDeposit += depositTx.receipt.gasUsed;
+
+        // Record contract and user balance after deposit
+        const contractBalanceAfterDeposit = await web3.eth.getBalance(contractInstance.address);
+        const userBalanceAfterDeposit = await contractInstance.balances(userAccount);
+
+        // User withdraws all their funds
+        const withdrawTx = await contractInstance.withdraw({
+          from: userAccount,
+        });
+        totalGasUsedWithdraw += withdrawTx.receipt.gasUsed;
+
+        // Record contract and user balance after withdrawal
+        const contractBalanceAfterWithdraw = await web3.eth.getBalance(contractInstance.address);
+        const userBalanceAfterWithdraw = await contractInstance.balances(userAccount);
+
+        // Check balances
+        assert.equal(
+          web3.utils.fromWei(userBalanceAfterWithdraw, "ether"),
+          "0",
+          "User balance should be 0 ETH"
+        );
+
+        if (i === numRuns - 1) {
+          finalContractBalance = web3.utils.fromWei(contractBalanceAfterWithdraw, "ether");
+          finalUserBalance = web3.utils.fromWei(userBalanceAfterWithdraw, "ether");
+        }
+      }
+
+      const averageGasUsedDeploy = totalGasUsedDeploy / numRuns;
+      const averageGasUsedDeposit = totalGasUsedDeposit / numRuns;
+      const averageGasUsedWithdraw = totalGasUsedWithdraw / numRuns;
+
+      console.log(`\n=== ${contractName} ===`);
+      console.log(`Average gas used for deployment: ${averageGasUsedDeploy}`);
+      console.log(`Average gas used for deposit: ${averageGasUsedDeposit}`);
+      console.log(`Average gas used for withdrawal: ${averageGasUsedWithdraw}`);
+      console.log(`Final contract balance: ${finalContractBalance} ETH`);
+      console.log(`Final user balance in contract: ${finalUserBalance} ETH`);
+    }
+
+    await testPullPaymentContract(SecurePullPayment, "SecurePullPayment");
   });
 
   it("should test SecureOZReentrancyGuard contract", async () => {
-    await performAttack(SecureOZReentrancyGuard, "SecureOZReentrancyGuard");
+    await testContract(SecureOZReentrancyGuard, "SecureOZReentrancyGuard");
   });
 });

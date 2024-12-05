@@ -1,15 +1,18 @@
-
-FROM node:16
+FROM node:18
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm install -g truffle ganache && npm install
+COPY package.json package-lock.json ./
+
+RUN npm install -g truffle ganache-cli
+
+RUN npm install
 
 COPY . .
 
-RUN truffle compile --all
+COPY start.sh /usr/local/bin/start.sh
+RUN chmod +x /usr/local/bin/start.sh
 
-CMD ganache-cli -m "test test test test test test test test test test test junk" -e 1000 > /dev/null & \
-    sleep 5 && truffle test
+ENV NODE_ENV=development
 
+CMD ["start.sh"]
