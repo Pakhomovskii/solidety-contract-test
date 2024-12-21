@@ -13,7 +13,7 @@ contract Vulnerable {
     function withdraw(uint256 _amount) external {
         require(balances[msg.sender] >= _amount, "Insufficient balance");
 
-        // Уязвимость: внешний вызов перед обновлением состояния
+        
         (bool success, ) = payable(msg.sender).call{value: _amount}("");
         require(success, "Transfer failed");
 
