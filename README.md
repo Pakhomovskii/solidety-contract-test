@@ -17,29 +17,6 @@ The tests analyze three main aspects:
 3. Gas consumption during **withdrawal**.
 4. Correlation between gas consumption and transaction time.
 
-## Results
-
-### 1. Average Gas Consumption During Deployment
-![Gas Consumption Deployment](file-LQ6ayNp6ThmUo3Bcjge4BP)
-
-### 2. Average Gas Consumption During Withdrawal
-![Gas Consumption Withdrawal](file-Hox5ge42D98taBQmWqkSKk)
-
-### 3. Average Gas Consumption During Deposit
-![Gas Consumption Deposit](file-5uEw6Z1ZecQzpep6hiQRnn)
-
-### 4. Comparison of Transaction Times for Deployment, Deposit, and Withdrawal
-![Transaction Times Comparison](file-Xw8LVreK3qaQeqZSmXGq81)
-
-### 5. Correlation Between Gas Consumption and Transaction Times (Deployment)
-![Correlation Deployment](file-KUrvMYTZpUkmgTkuhpGhVU)
-
-### 6. Correlation Between Gas Consumption and Transaction Times (Deposit)
-![Correlation Deposit](file-DhqddbjCfq3oEz1m3xd9Vi)
-
-### 7. Correlation Between Gas Consumption and Transaction Times (Withdrawal)
-![Correlation Withdrawal](file-K1GxT1o6KsUHCGa8U1eVyM)
-
 ## Project Configuration
 
 The project uses the following Truffle configuration:
@@ -72,28 +49,23 @@ module.exports = {
 
 ## How to Run
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Pakhomovskii/solidety-contract-test.git
-   cd solidety-contract-test
-   ```
 
-2. Install dependencies:
+1. Install dependencies:
    ```bash
    npm install
    ```
 
-3. Compile the contracts:
+2. Compile the contracts:
    ```bash
    truffle compile
    ```
 
-4. Deploy the contracts:
+3. Deploy the contracts:
    ```bash
    truffle migrate
    ```
 
-5. Run the tests:
+4. Run the tests:
    ```bash
    truffle test
    ```
