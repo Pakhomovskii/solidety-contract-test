@@ -65,7 +65,11 @@ module.exports = {
    truffle migrate
    ```
 
-4. Run the tests:
+4. Run ganache-cli and  the tests:
+   ```bash
+   ganache-cli --gasLimit 10000000 --defaultBalanceEther 2000 --gasPrice 2000000000
+   ```
+   and
    ```bash
    truffle test
    ```
