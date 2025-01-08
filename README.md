@@ -71,8 +71,4 @@ module.exports = {
    ```
 
 ## Conclusion
-The results provide insights into the efficiency of various smart contract security mechanisms. Use the visualizations to identify optimal trade-offs between gas costs and transaction times.
-
----
-
-For more details, please refer to the [GitHub Repository](https://github.com/Pakhomovskii/solidety-contract-test).
+The results provide insights into the efficiency of various smart contract security mechanisms. 
