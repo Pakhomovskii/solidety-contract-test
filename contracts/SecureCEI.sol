@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 // SecureCEI.sol
+// The Checks-Effects-Interactions pattern is implemented based on the recommendations of the official Solidity documentation
 
 pragma solidity ^0.8.0;
 

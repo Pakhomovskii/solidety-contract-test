@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT
+// The following code snippet is borrowed from the official Rust documentation ("The Rust Programming Language" book)
+
 use std::sync::{Arc, Mutex};
 use std::thread;
 

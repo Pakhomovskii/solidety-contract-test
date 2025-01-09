@@ -1,4 +1,7 @@
 // SPDX-License-Identifier: MIT
+//AdvancedCEI.sol
+// The Checks-Effects-Interactions pattern is implemented based on the recommendations of the official Solidity documentation
+
 pragma solidity ^0.8.0;
 
 contract AdvancedCEI {

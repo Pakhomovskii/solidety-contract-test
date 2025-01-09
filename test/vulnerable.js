@@ -105,27 +105,27 @@ contract("Smart Contract Tests", (accounts) => {
     console.log(`Final user balance in contract: ${finalUserBalance} ETH`);
   }
 
-  it("should test Vulnerable contract", async () => {
+  it("test Vulnerable contract", async () => {
     await testStandardContract(Vulnerable, "Vulnerable", "0.5");
   });
 
-  it("should test SecureCEI contract", async () => {
+  it("test SecureCEI contract", async () => {
     await testStandardContract(SecureCEI, "SecureCEI", "0.5");
   });
 
-  it("should test AdvancedCEI contract", async () => {
+  it("test AdvancedCEI contract", async () => {
     await testStandardContract(AdvancedCEI, "AdvancedCEI", "0.5");
   });
 
-  it("should test SecureMutex contract", async () => {
+  it("test SecureMutex contract", async () => {
     await testStandardContract(SecureMutex, "SecureMutex", "0.5");
   });
 
-  it("should test SecurePullPayment contract", async () => {
+  it("test SecurePullPayment contract", async () => {
     await testCustomContract(SecurePullPayment, "SecurePullPayment");
   });
 
-  it("should test SecureOZReentrancyGuard contract", async () => {
+  it("test SecureOZReentrancyGuard contract", async () => {
     await testStandardContract(SecureOZReentrancyGuard, "SecureOZReentrancyGuard", "0.5");
   });
 

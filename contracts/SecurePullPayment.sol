@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 //SecurePullPayment.sol
+// The Pull Payment pattern is implemented based on the recommendations of the official Solidity documentation and the enhancements proposed by Ge (2021)
 
 pragma solidity ^0.8.0;
 
