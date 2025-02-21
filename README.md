@@ -73,6 +73,3 @@ module.exports = {
    ```bash
    truffle test
    ```
-
-## Conclusion
-The results provide insights into the efficiency of various smart contract security mechanisms. 
