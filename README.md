@@ -1,4 +1,4 @@
-# Solidity Contract Analysis
+## Solidity Contract Analysis
 
 This project aims to analyze and compare gas consumption and transaction times of various Solidity contracts under different scenarios. The results are summarized in the charts provided below.
 
