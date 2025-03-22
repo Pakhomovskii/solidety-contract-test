@@ -69,6 +69,8 @@ module.exports = {
    ```bash
    ganache-cli --gasLimit 10000000 --defaultBalanceEther 2000 --gasPrice 2000000000
    ```
+
+#TODO add metrics
    and
    ```bash
    truffle test
