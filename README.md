@@ -1,7 +1,7 @@
 ## Solidity Contract Analysis
 
 This project aims to analyze and compare gas consumption and transaction times of various Solidity contracts under different scenarios. The results are summarized in the charts provided below.
-
+See publication here https://zenodo.org/records/14911139
 ## Overview
 The project evaluates several Solidity contracts, including:
 - `Vulnerable`
